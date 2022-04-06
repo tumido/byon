@@ -31,7 +31,7 @@ run: # Creates and follows execution of 1 positive and 1 negative cases of valid
 		-w name=data,volumeClaimTemplateFile=manifests/overlays/dev/pvc.yaml \
 		-p url=quay.io/tcoufal/false \
 		-p name="Image does not exist" \
-		-p desc="This image is expected to FAIL validation"
+		-p desc="This image is expected to FAIL validation with 'error' severity"
 
 	tkn pipeline start byon-import-jupyterhub-image \
 		--showlog \
@@ -47,7 +47,7 @@ test: # Queues various import pipelines and asserts results
 		-w name=data,volumeClaimTemplateFile=manifests/overlays/dev/pvc.yaml \
 		-p url=quay.io/tcoufal/false \
 		-p name="Image does not exist" \
-		-p desc="This image is expected to FAIL validation" >/dev/null
+		-p desc="This image is expected to FAIL validation with 'error' severity" >/dev/null
 
 	@tkn pipeline start byon-import-jupyterhub-image \
 		-w name=data,volumeClaimTemplateFile=manifests/overlays/dev/pvc.yaml \
@@ -59,7 +59,7 @@ test: # Queues various import pipelines and asserts results
 		-w name=data,volumeClaimTemplateFile=manifests/overlays/dev/pvc.yaml \
 		-p url=quay.io/thoth-station/s2i-minimal-notebook:v0.0.15 \
 		-p name="Thoth Station miminal Python 3.6" \
-		-p desc="This image is expected to FAIL validation" >/dev/null
+		-p desc="This image is expected to FAIL validation with 'error' severity" >/dev/null
 
 	@tkn pipeline start byon-import-jupyterhub-image \
 		-w name=data,volumeClaimTemplateFile=manifests/overlays/dev/pvc.yaml \
@@ -85,6 +85,12 @@ test: # Queues various import pipelines and asserts results
 		-p name="OS-Climate image with Pytorch" \
 		-p desc="This image is expected to PASS validation" >/dev/null
 
+	@tkn pipeline start byon-import-jupyterhub-image \
+		-w name=data,volumeClaimTemplateFile=manifests/overlays/dev/pvc.yaml \
+		-p url=quay.io/tcoufal/jh-minimal-test:r \
+		-p name="Minimal R image, mirrored https://hub.docker.com/r/jupyter/r-notebook" \
+		-p desc="This image is expected to FAIL validation with 'warning' severity" >/dev/null
+
 	@echo " Done"
 
 	@echo -n "Waiting for pipelines to finish execution..."
@@ -92,7 +98,7 @@ test: # Queues various import pipelines and asserts results
 	@echo " Done"
 
 	@echo "Results:"
-	@oc get is -l app.kubernetes.io/created-by=byon -o custom-columns=NAME:.metadata.annotations.opendatahub\\.io\\/notebook-image-name,DESCRIPTION:.metadata.annotations.opendatahub\\.io\\/notebook-image-desc,PHASE:.metadata.annotations.opendatahub\\.io\\/notebook-image-phase,VISIBILITY:.metadata.annotations.opendatahub\\.io\\/notebook-image-visible,MESSAGES:.metadata.annotations.opendatahub\\.io\\/notebook-image-message
+	@oc get is -l app.kubernetes.io/created-by=byon -o custom-columns=NAME:.metadata.annotations.opendatahub\\.io\\/notebook-image-name,DESCRIPTION:.metadata.annotations.opendatahub\\.io\\/notebook-image-desc,PHASE:.metadata.annotations.opendatahub\\.io\\/notebook-image-phase,VISIBILITY:.metadata.annotations.opendatahub\\.io\\/notebook-image-visible,MESSAGES:.metadata.annotations.opendatahub\\.io\\/notebook-image-messages
 
 cleanup: # Cleanup from previous runs (removes all imagestreams created from `make run` and deletes all pipelinerun resources)
 	oc delete is -l app.kubernetes.io/created-by=byon
